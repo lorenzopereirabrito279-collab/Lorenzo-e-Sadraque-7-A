@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Questionário Anônimo</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+
+    background:
+        radial-gradient(circle at 20% 20%, #5d89b5, transparent 45%),
+        radial-gradient(circle at 80% 80%, #315f88, transparent 50%),
+        #416f99;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: -40px;
+    z-index: -1;
+    background:
+        radial-gradient(circle at 20% 30%, #6f9bc2, transparent 40%),
+        radial-gradient(circle at 80% 70%, #28577f, transparent 45%);
+    filter: blur(35px);
+}
+
+.container {
+    width: 92%;
+    max-width: 760px;
+    padding: 35px;
+    margin: 25px auto;
+
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 25px;
+
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+
+    box-shadow: 0 15px 45px rgba(0,0,0,0.25);
+    text-align: center;
+}
+
+h1 {
+    margin-top: 0;
+    font-size: 28px;
+}
+
+.intro {
+    color: white;
+    font-size: 19px;
+    line-height: 1.7;
+    margin-bottom: 28px;
+}
+
+.pergunta {
+    font-size: 23px;
+    font-weight: bold;
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+
+.opcoes {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+button {
+    border: none;
+    border-radius: 12px;
+    padding: 14px 25px;
+    margin: 6px;
+
+    font-size: 17px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    background: white;
+    color: #315f88;
+
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+#resposta {
+    display: none;
+
+    margin-top: 25px;
+    padding: 20px;
+
+    background: rgba(255,255,255,0.13);
+    border-radius: 15px;
+
+    color: white;
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+#proximo {
+    display: none;
+    margin-top: 22px;
+}
+
+#questionario {
+    display: none;
+}
+
+#final {
+    display: none;
+}
+
+#finalTexto {
+    font-size: 20px;
+    line-height: 1.7;
+}
+
+/* Botão fixado no canto superior direito */
+#musicaControle {
+    display: block;
+
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    z-index: 1000;
+
+    width: 58px;
+    height: 58px;
+
+    border-radius: 50%;
+    padding: 0;
+
+    font-size: 22px;
+}
+
+@media (max-width: 600px) {
+
+    .container {
+        padding: 25px 18px;
+    }
+
+    .intro {
+        font-size: 17px;
+    }
+
+    .pergunta {
+        font-size: 20px;
+    }
+
+    button {
+        width: 90%;
+        margin: 5px auto;
+    }
+
+    .opcoes {
+        flex-direction: column;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- TELA INICIAL -->
+    <div id="inicio">
+
+        <p class="intro">
+            Este questionário é totalmente anônimo. Responda com sinceridade
+            e tranquilidade, pois suas respostas serão tratadas com respeito
+            e sem julgamentos. Não tenha receio de compartilhar o que realmente sente
+        </p>
+
+        <button onclick="iniciarQuestionario()">OK</button>
+
+    </div>
+
+
+    <!-- QUESTIONÁRIO -->
+    <div id="questionario">
+
+        <div class="pergunta" id="pergunta"></div>
+
+        <div class="opcoes" id="opcoes"></div>
+
+        <div id="resposta"></div>
+
+        <button id="proximo" onclick="proximaPergunta()">
+            Próxima pergunta
+        </button>
+
+    </div>
+
+
+    <!-- TELA FINAL -->
+    <div id="final">
+
+        <h1>Questionário concluído</h1>
+
+        <p id="finalTexto">
+            Este questionário mostra que, por trás de cada resposta,
+            existe uma pessoa com sentimentos, desafios e uma história
+            que merece ser ouvida. Você não está sozinho: pedir ajuda
+            não é sinal de fraqueza, mas de coragem. Cuide de si,
+            valorize sua vida e nunca tenha medo de falar sobre o que sente
+        </p>
+
+    </div>
+
+</div>
+
+
+<audio id="musicaFinal" loop autoplay>
+    <source src="you-not-the-same.mp3" type="audio/mpeg">
+</audio>
+
+<button id="musicaControle" onclick="alternarMusica()">
+    ⏸️
+</button>
+
+
+<script>
+
+const perguntas = [
+
+    /* 1 — TRÊS OPÇÕES, TODAS COM A MESMA RESPOSTA */
+    {
+        pergunta: "1-Qual gênero você se identifica?",
+
+        opcoes: [
+            {
+                texto: "Masculino",
+                resposta: "Não importa, você sempre será amado"
+            },
+            {
+                texto: "Feminino",
+                resposta: "Não importa, você sempre será amado"
+            },
+            {
+                texto: "Outro",
+                resposta: "Não importa, você sempre será amado"
+            }
+        ]
+    },
+
+
+    /* 2 */
+    {
+        pergunta: "2-Você tem inseguranças?",
+
+        opcoes: [
+            {
+                texto: "Sim",
+                resposta: "Tudo bem. É completamente normal se sentir assim. Ninguém é perfeito, e você não precisa ter vergonha de falar sobre o que sente. O importante é lembrar que você merece compreensão, carinho e ajuda quando precisar."
+            },
+            {
+                texto: "Não",
+                resposta: "Ótimo, continue assim até porque não tem motivos para ter vergonha"
+            }
+        ]
+    },
+
+
+    /* 3 */
+    {
+        pergunta: "3-Você tem sonhos?",
+
+        opcoes: [
+            {
+                texto: "Sim",
+                resposta: "Que ótimo, com a sua dedicação e o esforço que existe e que prevalece na sua vida você estará fadado ao sucesso"
+            },
+            {
+                texto: "Não",
+                resposta: "Super normal, talvez você não tenha decidido o que quer para o seu futuro mas acredite com sua dedicação você estará fadado ao sucesso"
+            }
+        ]
+    },
+
+
+    /* 4 */
+    {
+        pergunta: "4-Você se sente sozinho?",
+
+        opcoes: [
+            {
+                texto: "Sim",
+                resposta: "Não se sinta triste. Um dia você vai encontrar uma pessoa que te ame do jeito que você é e mesmo assim você sempre está acompanhado da pessoa que mais te ama: seu Salvador"
+            },
+            {
+                texto: "Não",
+                resposta: "Que ótimo, até porque você sempre estará acompanhado da pessoa que mais te ama: seu Salvador"
+            }
+        ]
+    },
+
+
+    /* 5 */
+    {
+        pergunta: "5-Alguma pessoa já tentou te colocar para baixo?",
+
+        opcoes: [
+            {
+                texto: "Sim",
+                resposta: "Não ligue para ele(a), afinal o que importa é só o que você pensa. Não fique triste nem nada do tipo. Pessoas assim estarão fadadas ao fracasso"
+            },
+            {
+                texto: "Não",
+                resposta: "Que ótimo"
+            }
+        ]
+    },
+
+
+    /* 6 */
+    {
+        pergunta: "6-Você tem dificuldade em falar sobre o que sente?",
+
+        opcoes: [
+            {
+                texto: "Sim",
+                resposta: "Ninguém irá te julgar. Você sempre será apoiado e amado. Não precisa ter medo. Nós precisamos falar o que pensamos e o que sentimos"
+            },
+            {
+                texto: "Não",
+                resposta: "Que ótimo, nós temos que falar o que pensamos e o que sentimos. Não podemos guardar para nós"
+            }
+        ]
+    },
+
+
+    /* 7 */
+    {
+        pergunta: "7-Você já pensou em se machucar ou tirar a própria vida?",
+
+        opcoes: [
+            {
+                texto: "Sim",
+                resposta: "Não podemos achar que a dor ou a morte vai ajudar em nossos problemas. Afinal existe alguém que se importa e que te ama do jeito que você é. Lembre-se: esta pessoa está com você o tempo todo"
+            },
+            {
+                texto: "Não",
+                resposta: "Que maravilha. Não podemos pensar dessa forma, afinal você é importante e o seu Salvador lhe ama e te quer bem"
+            }
+        ]
+    },
+
+
+    /* 8 */
+    {
+        pergunta: "8-Você sente que tem alguém em quem pode confiar quando está passando por um momento difícil?",
+
+        opcoes: [
+            {
+                texto: "Sim",
+                resposta: "Que bom que você tem alguém em quem confia. Ter uma pessoa para conversar pode fazer muita diferença. Não tenha medo de procurar essa pessoa quando precisar. Você não precisa guardar tudo o que sente para"
+            },
+            {
+                texto: "Não",
+                resposta: "Sinto muito que você esteja se sentindo assim. Você não precisa passar por tudo isso sozinho(a). Se quiser, pode conversar comigo, e também seria importante tentar contar para alguém de confiança, como um familiar, professor ou outro adulto que possa te ajudar."
+            }
+        ]
+    },
+
+
+    /* 9 */
+    {
+        pergunta: "9-Você sente que as pessoas não entendem o que você está passando?",
+
+        opcoes: [
+            {
+                texto: "Sim",
+                resposta: "Eu entendo que pode ser difícil quando parece que ninguém consegue compreender o que você sente. Você não precisa esconder seus sentimentos. Falar sobre eles pode ser um primeiro passo para receber ajuda."
+            },
+            {
+                texto: "Não",
+                resposta: "Que bom que você sente que as pessoas conseguem entender você. Continue conversando com quem te faz sentir acolhido(a) e não tenha medo de pedir ajuda quando precisar."
+            }
+        ]
+    },
+
+
+    /* 10 */
+    {
+        pergunta: "10-Você acredita que, mesmo nos momentos mais difíceis, ainda existem motivos para continuar e pessoas que se importam com você?",
+
+        opcoes: [
+            {
+                texto: "Sim",
+                resposta: "Fico feliz que você consiga enxergar isso. Nunca se esqueça de que você é importante, sua vida tem valor e existem pessoas que se importam com você. Mesmo nos dias difíceis, não tenha medo de pedir ajuda e continuar acreditando que as coisas podem melhorar."
+            },
+            {
+                texto: "Não",
+                resposta: "Tudo bem se você não conseguir enxergar esses motivos agora. Isso não significa que eles não existam. Você é importante e não precisa enfrentar esse momento sozinho(a). Procure alguém de confiança para conversar e permita que essa pessoa esteja ao seu lado."
+            }
+        ]
+    }
+
+];
+
+
+let perguntaAtual = 0;
+
+// Tenta reproduzir a música assim que carregar a página
+window.onload = function() {
+    const musica = document.getElementById("musicaFinal");
+    const botao = document.getElementById("musicaControle");
+
+    musica.play().then(function() {
+        botao.textContent = "⏸️";
+    }).catch(function() {
+        botao.textContent = "▶️️";
+        // Caso bloqueado, tenta tocar no primeiro clique na página
+        document.body.addEventListener('click', function tocarNoClique() {
+            musica.play();
+            botao.textContent = "⏸️";
+            document.body.removeEventListener('click', tocarNoClique);
+        }, { once: true });
+    });
+};
+
+
+/* COMEÇAR */
+function iniciarQuestionario() {
+
+    document.getElementById("inicio").style.display = "none";
+
+    document.getElementById("questionario").style.display = "block";
+
+    mostrarPergunta();
+}
+
+
+/* MOSTRAR PERGUNTA */
+function mostrarPergunta() {
+
+    const pergunta = perguntas[perguntaAtual];
+
+    document.getElementById("pergunta").textContent =
+        pergunta.pergunta;
+
+    const opcoes = document.getElementById("opcoes");
+
+    opcoes.innerHTML = "";
+
+    document.getElementById("resposta").style.display = "none";
+
+    document.getElementById("resposta").textContent = "";
+
+    document.getElementById("proximo").style.display = "none";
+
+
+    pergunta.opcoes.forEach(function(opcao) {
+
+        const botao = document.createElement("button");
+
+        botao.textContent = opcao.texto;
+
+
+        botao.onclick = function() {
+
+            /* MOSTRA EXATAMENTE A RESPOSTA DA OPÇÃO CLICADA */
+            document.getElementById("resposta").textContent =
+                opcao.resposta;
+
+            document.getElementById("resposta").style.display =
+                "block";
+
+
+            /* DESATIVA OS BOTÕES */
+            const botoes =
+                document.querySelectorAll("#opcoes button");
+
+            botoes.forEach(function(b) {
+
+                b.disabled = true;
+                b.style.opacity = "0.55";
+
+            });
+
+
+            botao.style.opacity = "1";
+
+
+            /* MOSTRA PRÓXIMA */
+            document.getElementById("proximo").style.display =
+                "inline-block";
+
+        };
+
+
+        opcoes.appendChild(botao);
+
+    });
+
+}
+
+
+/* PRÓXIMA PERGUNTA */
+function proximaPergunta() {
+
+    perguntaAtual++;
+
+
+    if (perguntaAtual < perguntas.length) {
+
+        mostrarPergunta();
+
+    } else {
+
+        document.getElementById("questionario").style.display =
+            "none";
+
+        document.getElementById("final").style.display =
+            "block";
+
+    }
+
+}
+
+
+/* CONTROLE DA MÚSICA */
+function alternarMusica() {
+
+    const musica =
+        document.getElementById("musicaFinal");
+
+    const botao =
+        document.getElementById("musicaControle");
+
+
+    if (musica.paused) {
+
+        musica.play();
+
+        botao.textContent = "⏸️";
+
+    } else {
+
+        musica.pause();
+
+        botao.textContent = "▶️";
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
